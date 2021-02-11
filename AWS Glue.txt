@@ -1,0 +1,44 @@
+
+CREATE EXTERNAL TABLE IF NOT EXISTS storedata.storedata (
+  `churn` int,
+  `accountweeks` int,
+  `contractrenewal` int,
+  `dataplan` int,
+  `datausage` decimal,
+  `custservicecalls` int,
+  `daymins` decimal,
+  `daycalls` int,
+  `monthlycharge` int,
+  `overagefee` decimal,
+  `roammins` decimal 
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+WITH SERDEPROPERTIES (
+  'serialization.format' = ',',
+  'field.delim' = ','
+) LOCATION 's3://mypocproject/telecom-data/'
+TBLPROPERTIES ('has_encrypted_data'='false');
+
+
+select * from storedata;
+
+CREATE external table if NOT EXISTS storedata.p_storedata( 
+	churn int, 
+	accountweeks int, 
+	dataplan int, 
+	datausage decimal(10,2), 
+	custservicecalls int
+	) partitioned by (contractrenewal int) 
+	location 's3://mypocproject/telecom-data/';
+
+
+CREATE external table if not exists storedata.b_storedata (
+  accountweeks int,
+  dataplan int,
+  datausage decimal(10,0),
+  custservicecalls int,
+  overagefee decimal(10,0)
+  ) partitioned by (contractrenewal int)
+  clustered by (churn) into 4 buckets
+  location 's3://mypocproject/telecom-data/';
+
